@@ -1,0 +1,75 @@
+import { getLastSync } from '../data/cache.js';
+import { synchronize } from '../data/sync.js';
+import { navigate } from '../main.js';
+
+export function renderNav() {
+  const nav = document.createElement('nav');
+  nav.className = 'main-nav';
+
+  const lastSync = getLastSync();
+  const syncText = lastSync
+    ? formatSyncDate(lastSync)
+    : 'Jamais synchronisé';
+
+  nav.innerHTML = `
+    <div class="nav-inner">
+      <div class="nav-links">
+        <a href="#/" class="nav-link nav-brand">Vidéographie</a>
+        <a href="#/" class="nav-link">Accueil</a>
+        <a href="#/chronologie" class="nav-link">Chronologie</a>
+      </div>
+      <div class="nav-actions">
+        <span class="nav-sync-status">Dernière sync : ${syncText}</span>
+        <button class="nav-refresh-btn" title="Actualiser">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  `;
+
+  // Navigation links
+  nav.querySelectorAll('.nav-link').forEach((link) => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const href = link.getAttribute('href');
+      window.location.hash = href;
+    });
+  });
+
+  // Refresh button
+  const refreshBtn = nav.querySelector('.nav-refresh-btn');
+  refreshBtn.addEventListener('click', async () => {
+    refreshBtn.classList.add('spinning');
+    try {
+      await synchronize(true);
+      const syncStatus = nav.querySelector('.nav-sync-status');
+      syncStatus.textContent = `Dernière sync : ${formatSyncDate(new Date().toISOString())}`;
+      // Re-render current view
+      window.dispatchEvent(new Event('hashchange'));
+    } catch (err) {
+      console.error('Sync error:', err);
+    } finally {
+      refreshBtn.classList.remove('spinning');
+    }
+  });
+
+  return nav;
+}
+
+function formatSyncDate(isoStr) {
+  const date = new Date(isoStr);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMin = Math.floor(diffMs / 60000);
+
+  if (diffMin < 1) return "À l'instant";
+  if (diffMin < 60) return `il y a ${diffMin} min`;
+
+  const hours = date.getHours();
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${hours}h${minutes}`;
+}
