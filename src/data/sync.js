@@ -1,7 +1,7 @@
-import { findRootFolder, listSubfolders, listVideos } from '../api/drive.js';
+import { getFolder, listSubfolders, listVideos } from '../api/drive.js';
 import { parseVideoFile } from './parser.js';
-import { getCache, setCache } from './cache.js';
-import { ROOT_FOLDER_NAME, VALID_CATEGORIES } from '../config.js';
+import { getCache, setCache, getSavedRootFolder } from './cache.js';
+import { VALID_CATEGORIES } from '../config.js';
 
 let syncInProgress = false;
 let cachedData = null;
@@ -25,19 +25,29 @@ export function getData() {
   return null;
 }
 
+export function isRootFolderConfigured() {
+  return getSavedRootFolder() !== null;
+}
+
 export async function synchronize(force = false) {
   if (syncInProgress) return getData();
   syncInProgress = true;
   lastSyncError = null;
 
   try {
+    // Check if root folder is configured
+    const savedFolder = getSavedRootFolder();
+    if (!savedFolder || !savedFolder.id) {
+      throw new Error('Aucun dossier configuré. Sélectionne ton dossier vidéographie depuis Google Drive.');
+    }
+
     // If not forced and cache exists, return cache and sync in background
     if (!force) {
       const existing = getCache();
       if (existing) {
         cachedData = existing;
         // Background sync — don't await
-        performSync().catch((err) => {
+        performSync(savedFolder.id).catch((err) => {
           console.error('Background sync error:', err);
           lastSyncError = err.message;
         });
@@ -46,7 +56,7 @@ export async function synchronize(force = false) {
     }
 
     // Full sync
-    const data = await performSync();
+    const data = await performSync(savedFolder.id);
     return data;
   } catch (err) {
     console.error('Sync error:', err);
@@ -58,27 +68,27 @@ export async function synchronize(force = false) {
   }
 }
 
-async function performSync() {
-  // Step 1: Find root folder
-  const rootFolder = await findRootFolder(ROOT_FOLDER_NAME);
-  if (!rootFolder) {
-    throw new Error(`Dossier « ${ROOT_FOLDER_NAME} » introuvable à la racine de ton Google Drive. Crée-le puis clique sur Actualiser.`);
+async function performSync(rootFolderId) {
+  // Verify the folder still exists
+  const folder = await getFolder(rootFolderId);
+  if (!folder) {
+    throw new Error('Le dossier vidéographie sélectionné est introuvable ou a été supprimé. Reconfigure-le depuis les paramètres.');
   }
 
-  // Step 2: List category folders
-  const categoryFolders = await listSubfolders(rootFolder.id);
+  // List category folders
+  const categoryFolders = await listSubfolders(rootFolderId);
 
   const categories = {};
 
-  // Step 3: For each valid category, list subjects
-  for (const folder of categoryFolders) {
-    const categoryName = folder.name.toLowerCase();
+  // For each valid category, list subjects
+  for (const catFolder of categoryFolders) {
+    const categoryName = catFolder.name.toLowerCase();
     if (!VALID_CATEGORIES.includes(categoryName)) continue;
 
-    const subjectFolders = await listSubfolders(folder.id);
+    const subjectFolders = await listSubfolders(catFolder.id);
     const subjects = {};
 
-    // Step 4: For each subject, list videos
+    // For each subject, list videos
     for (const subjectFolder of subjectFolders) {
       const videoFiles = await listVideos(subjectFolder.id);
       const videos = videoFiles.map(parseVideoFile);
@@ -97,7 +107,7 @@ async function performSync() {
     }
 
     categories[categoryName] = {
-      folderId: folder.id,
+      folderId: catFolder.id,
       subjects,
     };
   }

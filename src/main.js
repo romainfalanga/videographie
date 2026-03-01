@@ -1,7 +1,8 @@
 import { initAuth, isAuthenticated, onAuthChange, trySilentLogin } from './auth/google.js';
-import { synchronize } from './data/sync.js';
+import { synchronize, isRootFolderConfigured } from './data/sync.js';
 import { renderNav } from './components/nav.js';
 import { renderLogin } from './views/login.js';
+import { renderSetup } from './views/setup.js';
 import { renderHome } from './views/home.js';
 import { renderCategory } from './views/category.js';
 import { renderSubject } from './views/subject.js';
@@ -17,9 +18,7 @@ function renderApp(content, showNav = true) {
   app.innerHTML = '';
 
   if (showNav) {
-    if (!currentNav) {
-      currentNav = renderNav();
-    }
+    currentNav = renderNav(showSetup);
     app.appendChild(currentNav);
 
     const main = document.createElement('main');
@@ -37,8 +36,20 @@ function route() {
     return;
   }
 
+  // If no root folder configured, show setup
+  if (!isRootFolderConfigured()) {
+    showSetup();
+    return;
+  }
+
   const hash = window.location.hash || '#/';
   const path = hash.slice(1); // remove #
+
+  // Route: /setup
+  if (path === '/setup') {
+    showSetup();
+    return;
+  }
 
   // Route: /
   if (path === '/' || path === '') {
@@ -85,6 +96,21 @@ function route() {
   renderApp(renderHome());
 }
 
+function showSetup() {
+  const setupView = renderSetup(async (selectedFolder) => {
+    // Folder selected — sync and go to home
+    app.innerHTML = '<div class="loading"><p>Synchronisation en cours...</p></div>';
+    try {
+      await synchronize(true);
+    } catch (err) {
+      console.error('Sync after setup:', err);
+    }
+    window.location.hash = '#/';
+    route();
+  });
+  renderApp(setupView, false);
+}
+
 // Exported for use by other modules
 export function navigate(hash) {
   window.location.hash = hash;
@@ -98,14 +124,15 @@ async function init() {
 
   onAuthChange(async (authenticated) => {
     if (authenticated) {
-      app.innerHTML = '<div class="loading"><p>Connexion à Google Drive...</p></div>';
-      try {
-        await synchronize();
-      } catch (err) {
-        console.error('Sync error:', err);
-        // Continue to render even if sync fails — the views will show the error
+      // If root folder is configured, sync immediately
+      if (isRootFolderConfigured()) {
+        app.innerHTML = '<div class="loading"><p>Connexion à Google Drive...</p></div>';
+        try {
+          await synchronize();
+        } catch (err) {
+          console.error('Sync error:', err);
+        }
       }
-      currentNav = null; // Force nav refresh
       route();
     } else {
       currentNav = null;
@@ -118,7 +145,6 @@ async function init() {
   trySilentLogin();
 
   // If not authenticated after a short delay, show login page
-  // This covers the case where silent login fails silently
   setTimeout(() => {
     if (!isAuthenticated()) {
       route();
