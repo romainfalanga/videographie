@@ -6,4 +6,4 @@ export const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
 
 export const ROOT_FOLDER_NAME = 'vidéographie';
 
-export const VALID_CATEGORIES = ['matière', 'mécanisme', 'galaxie'];
+export const VALID_CATEGORIES = ['matière', 'mécanismes', 'galaxies'];

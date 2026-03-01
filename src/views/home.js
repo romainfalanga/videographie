@@ -34,8 +34,8 @@ export function renderHome() {
           <div class="folder-structure">
             <code>vidéographie/</code>
             <code>├── matière/</code>
-            <code>├── mécanisme/</code>
-            <code>└── galaxie/</code>
+            <code>├── mécanismes/</code>
+            <code>└── galaxies/</code>
           </div>
           <p class="error-description">Ensuite, clique sur « Actualiser » dans la barre de navigation.</p>
         </div>
