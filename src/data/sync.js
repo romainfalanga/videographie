@@ -93,12 +93,8 @@ async function performSync(rootFolderId) {
       const videoFiles = await listVideos(subjectFolder.id);
       const videos = videoFiles.map(parseVideoFile);
 
-      // Sort by date+time descending (most recent first)
-      videos.sort((a, b) => {
-        const dateTimeA = `${a.date} ${a.time}`;
-        const dateTimeB = `${b.date} ${b.time}`;
-        return dateTimeB.localeCompare(dateTimeA);
-      });
+      // Sort alphabetically by name
+      videos.sort((a, b) => a.name.localeCompare(b.name, 'fr'));
 
       subjects[subjectFolder.name] = {
         folderId: subjectFolder.id,
@@ -137,12 +133,8 @@ export function getAllVideos() {
     }
   }
 
-  // Sort chronologically descending
-  allVideos.sort((a, b) => {
-    const dateTimeA = `${a.date} ${a.time}`;
-    const dateTimeB = `${b.date} ${b.time}`;
-    return dateTimeB.localeCompare(dateTimeA);
-  });
+  // Sort alphabetically by name
+  allVideos.sort((a, b) => a.name.localeCompare(b.name, 'fr'));
 
   return allVideos;
 }
