@@ -46,9 +46,9 @@ export function renderSetup(onFolderSelected) {
           <code>${ROOT_FOLDER_NAME}/</code>
           <code>├── matière/</code>
           <code>│   └── <em>tes sujets...</em></code>
-          <code>├── mécanisme/</code>
+          <code>├── mécanismes/</code>
           <code>│   └── <em>tes sujets...</em></code>
-          <code>└── galaxie/</code>
+          <code>└── galaxies/</code>
           <code>    └── <em>tes sujets...</em></code>
         </div>
         <p class="setup-help-note">Chaque sujet est un sous-dossier contenant tes vidéos.</p>
