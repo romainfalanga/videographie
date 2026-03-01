@@ -132,7 +132,7 @@ export async function listVideos(parentId) {
 
   do {
     const params = {
-      q: `'${parentId}' in parents and mimeType contains 'video/' and trashed = false`,
+      q: `'${parentId}' in parents and mimeType != 'application/vnd.google-apps.folder' and trashed = false`,
       fields: 'nextPageToken, files(id, name, mimeType, thumbnailLink, createdTime, size)',
       orderBy: 'name',
       pageSize: '100',
