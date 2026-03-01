@@ -17,6 +17,9 @@ export function renderLogin() {
         </svg>
         Se connecter avec Google
       </button>
+      <p class="login-info">
+        Vidéographie se connecte en lecture seule à ton Google Drive pour afficher tes vidéos. Aucune donnée n'est stockée ni modifiée.
+      </p>
     </div>
   `;
 

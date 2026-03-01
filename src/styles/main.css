@@ -27,6 +27,11 @@
   --accent: #c4a882;
   --accent-dim: rgba(196, 168, 130, 0.15);
 
+  --error: #c47a6a;
+  --error-dim: rgba(196, 122, 106, 0.1);
+  --warning: #c4a060;
+  --warning-dim: rgba(196, 160, 96, 0.1);
+
   --border: rgba(255, 255, 255, 0.06);
   --shadow: rgba(0, 0, 0, 0.4);
 
@@ -140,6 +145,17 @@ button {
   flex-shrink: 0;
 }
 
+.login-info {
+  margin-top: 2.5rem;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  font-weight: 300;
+  line-height: 1.6;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 /* ---------- Navigation ---------- */
 
 .main-nav {
@@ -193,13 +209,14 @@ button {
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .nav-sync-status {
   font-size: 0.75rem;
   color: var(--text-muted);
   display: none;
+  margin-right: 0.5rem;
 }
 
 @media (min-width: 640px) {
@@ -208,7 +225,8 @@ button {
   }
 }
 
-.nav-refresh-btn {
+.nav-refresh-btn,
+.nav-logout-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -219,9 +237,15 @@ button {
   transition: color var(--transition-fast), background-color var(--transition-fast);
 }
 
-.nav-refresh-btn:hover {
+.nav-refresh-btn:hover,
+.nav-logout-btn:hover {
   color: var(--text-primary);
   background-color: var(--accent-dim);
+}
+
+.nav-logout-btn:hover {
+  color: var(--error);
+  background-color: var(--error-dim);
 }
 
 .nav-refresh-btn.spinning svg {
@@ -319,6 +343,69 @@ button {
   font-size: 0.875rem;
 }
 
+/* ---------- Sync Error Banner ---------- */
+
+.sync-error-banner {
+  display: flex;
+  gap: 1.25rem;
+  padding: 1.5rem 1.75rem;
+  background-color: var(--warning-dim);
+  border: 1px solid rgba(196, 160, 96, 0.2);
+  border-radius: var(--radius-md);
+  margin-bottom: 2rem;
+}
+
+.sync-error-banner .error-icon {
+  flex-shrink: 0;
+  color: var(--warning);
+  padding-top: 0.125rem;
+}
+
+.sync-error-banner .error-content {
+  flex: 1;
+}
+
+.sync-error-banner .error-title {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.sync-error-banner .error-description {
+  font-size: 0.8125rem;
+  font-weight: 300;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+}
+
+.sync-error-banner .error-description:last-child {
+  margin-bottom: 0;
+}
+
+.sync-error-banner .error-description strong {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.sync-error-banner .folder-structure {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.75rem 1rem;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-sm);
+  margin: 0.75rem 0;
+  font-family: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
+}
+
+.sync-error-banner .folder-structure code {
+  font-size: 0.75rem;
+  color: var(--accent);
+  line-height: 1.5;
+}
+
 /* ---------- Categories Grid ---------- */
 
 .categories-grid {
@@ -345,6 +432,14 @@ button {
   border-color: rgba(255, 255, 255, 0.1);
   transform: translateY(-2px);
   box-shadow: 0 8px 32px var(--shadow);
+}
+
+.category-card--empty {
+  opacity: 0.5;
+}
+
+.category-card--empty:hover {
+  opacity: 0.7;
 }
 
 .category-card-icon {
@@ -379,6 +474,14 @@ button {
 
 .stat-separator {
   opacity: 0.4;
+}
+
+.category-card-hint {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  margin-top: 0.75rem;
+  font-style: italic;
+  font-weight: 300;
 }
 
 /* ---------- Subjects Grid ---------- */
@@ -637,5 +740,10 @@ button {
 
   .player-nav-btn span {
     display: none;
+  }
+
+  .sync-error-banner {
+    flex-direction: column;
+    gap: 0.75rem;
   }
 }

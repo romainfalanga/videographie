@@ -4,7 +4,7 @@ const API_BASE = 'https://www.googleapis.com/drive/v3';
 
 async function request(endpoint, params = {}) {
   const token = getToken();
-  if (!token) throw new Error('Not authenticated');
+  if (!token) throw new Error('Non authentifié. Reconnecte-toi avec Google.');
 
   const url = new URL(`${API_BASE}${endpoint}`);
   Object.entries(params).forEach(([key, value]) => {
@@ -15,8 +15,16 @@ async function request(endpoint, params = {}) {
     headers: { Authorization: `Bearer ${token}` },
   });
 
+  if (response.status === 401) {
+    throw new Error('Session expirée. Reconnecte-toi avec Google.');
+  }
+
+  if (response.status === 403) {
+    throw new Error("Accès refusé. Vérifie que tu as autorisé l'accès en lecture à ton Google Drive.");
+  }
+
   if (!response.ok) {
-    throw new Error(`Drive API error: ${response.status} ${response.statusText}`);
+    throw new Error(`Erreur Google Drive (${response.status}). Réessaie dans quelques instants.`);
   }
 
   return response.json();

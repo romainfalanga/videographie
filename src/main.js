@@ -85,7 +85,7 @@ function route() {
   renderApp(renderHome());
 }
 
-// Exported for nav.js
+// Exported for use by other modules
 export function navigate(hash) {
   window.location.hash = hash;
 }
@@ -98,29 +98,32 @@ async function init() {
 
   onAuthChange(async (authenticated) => {
     if (authenticated) {
-      app.innerHTML = '<div class="loading"><p>Synchronisation avec Google Drive...</p></div>';
+      app.innerHTML = '<div class="loading"><p>Connexion à Google Drive...</p></div>';
       try {
         await synchronize();
       } catch (err) {
         console.error('Sync error:', err);
+        // Continue to render even if sync fails — the views will show the error
       }
       currentNav = null; // Force nav refresh
       route();
     } else {
       currentNav = null;
+      window.location.hash = '';
       route();
     }
   });
 
-  // Try silent login
+  // Try silent login first
   trySilentLogin();
 
-  // If not authenticated after a delay, show login
+  // If not authenticated after a short delay, show login page
+  // This covers the case where silent login fails silently
   setTimeout(() => {
     if (!isAuthenticated()) {
       route();
     }
-  }, 2000);
+  }, 1500);
 
   // Hash-based routing
   window.addEventListener('hashchange', route);
