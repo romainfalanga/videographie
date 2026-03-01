@@ -5,9 +5,14 @@ import { ROOT_FOLDER_NAME, VALID_CATEGORIES } from '../config.js';
 
 let syncInProgress = false;
 let cachedData = null;
+let lastSyncError = null;
 
 export function getSyncStatus() {
   return syncInProgress;
+}
+
+export function getSyncError() {
+  return lastSyncError;
 }
 
 export function getData() {
@@ -23,6 +28,7 @@ export function getData() {
 export async function synchronize(force = false) {
   if (syncInProgress) return getData();
   syncInProgress = true;
+  lastSyncError = null;
 
   try {
     // If not forced and cache exists, return cache and sync in background
@@ -31,7 +37,10 @@ export async function synchronize(force = false) {
       if (existing) {
         cachedData = existing;
         // Background sync — don't await
-        performSync().catch(console.error);
+        performSync().catch((err) => {
+          console.error('Background sync error:', err);
+          lastSyncError = err.message;
+        });
         return cachedData;
       }
     }
@@ -39,6 +48,11 @@ export async function synchronize(force = false) {
     // Full sync
     const data = await performSync();
     return data;
+  } catch (err) {
+    console.error('Sync error:', err);
+    lastSyncError = err.message;
+    // Return cached data if available even on error
+    return getData();
   } finally {
     syncInProgress = false;
   }
@@ -48,7 +62,7 @@ async function performSync() {
   // Step 1: Find root folder
   const rootFolder = await findRootFolder(ROOT_FOLDER_NAME);
   if (!rootFolder) {
-    throw new Error(`Dossier "${ROOT_FOLDER_NAME}" introuvable à la racine du Drive.`);
+    throw new Error(`Dossier « ${ROOT_FOLDER_NAME} » introuvable à la racine de ton Google Drive. Crée-le puis clique sur Actualiser.`);
   }
 
   // Step 2: List category folders
@@ -91,6 +105,7 @@ async function performSync() {
   const data = { categories };
   setCache(data);
   cachedData = { ...data, lastSync: new Date().toISOString() };
+  lastSyncError = null;
   return cachedData;
 }
 

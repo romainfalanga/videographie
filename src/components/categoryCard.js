@@ -23,10 +23,10 @@ const CATEGORY_DESCRIPTIONS = {
   'galaxie': 'Projets, univers personnels',
 };
 
-export function createCategoryCard(name, stats) {
+export function createCategoryCard(name, stats, isEmpty = false) {
   const card = document.createElement('a');
   card.href = `#/categorie/${encodeURIComponent(name)}`;
-  card.className = 'category-card';
+  card.className = `category-card${isEmpty ? ' category-card--empty' : ''}`;
 
   const icon = CATEGORY_ICONS[name] || '';
   const description = CATEGORY_DESCRIPTIONS[name] || '';
@@ -40,6 +40,7 @@ export function createCategoryCard(name, stats) {
       <span class="stat-separator">&middot;</span>
       <span>${stats.videoCount} vidéo${stats.videoCount > 1 ? 's' : ''}</span>
     </div>
+    ${isEmpty ? '<p class="category-card-hint">Dossier non trouvé sur le Drive</p>' : ''}
   `;
 
   card.addEventListener('click', (e) => {
